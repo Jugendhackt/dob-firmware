@@ -16,7 +16,7 @@ esp_err_t event_handler(void *ctx, system_event_t *event)
     return ESP_OK;
 }
 
-static void tcp_client_task(void *pvParameters){
+static void task_send_file(void *pvParameters){
     struct sockaddr_in destaddr = {
         .sin_addr = {
             .s_addr = inet_addr("192.168.4.1")
@@ -65,5 +65,5 @@ void app_main(){
     vTaskDelay(4000 / portTICK_PERIOD_MS);
 
     ESP_LOGI("Sending: ", "Paket from Task");
-    xTaskCreate(tcp_client_task, "tcp_client", 4096, NULL, 5, NULL);
+    xTaskCreate(task_send_file, "tcp_client", 4096, NULL, 5, NULL);
 }
