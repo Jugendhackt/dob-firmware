@@ -26,7 +26,6 @@ static void task_send_file(void *pvParameters){
     };
 
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
-    int err = connect(sock, (struct sockaddr *)&destaddr, sizeof(destaddr));
     int imax = sizeof(kartoffel) / 128;
     for(int i = 0; i < imax; i++){
         send(sock, kartoffel + 128 * i, 128, 0);
