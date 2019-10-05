@@ -1,20 +1,6 @@
-#include <esp_log.h>
-#include <esp_wifi.h>
-#include <esp_system.h>
-#include <esp_event.h>
-#include <esp_event_loop.h>
-#include <nvs_flash.h>
-#include <lwip/sockets.h>
-#include <freertos/FreeRTOS.h>
-#include <freertos/task.h>
-#include <long-string.h>
-#define TAG_WIFI "Wifi: "
-
-
-esp_err_t event_handler(void *ctx, system_event_t *event)
-{
-    return ESP_OK;
-}
+#include "common.h"
+#include "rec.h"
+#include "long-string.h"
 
 static void task_send_file(void *pvParameters){
     struct sockaddr_in destaddr = {
@@ -39,28 +25,13 @@ static void task_send_file(void *pvParameters){
     vTaskDelete(NULL);
 }
 
-void app_main(){
-    nvs_flash_init();
+void app_main() {
+    ESP_ERROR_CHECK(nvs_flash_init());
     tcpip_adapter_init();
-    esp_event_loop_init(event_handler, NULL);
-    ESP_LOGI(TAG_WIFI, "Init Wifi");
-    wifi_init_config_t cfg = WIFI_INIT_CONFIG_DEFAULT();
-    esp_wifi_init(&cfg);
-    esp_wifi_set_storage(WIFI_STORAGE_RAM);
-    esp_wifi_set_mode(WIFI_MODE_STA);
-    wifi_config_t cfg_sta = {
-        .sta = {
-            .ssid = "DoB DoB DoB DoB",
-            .password = "BoD BoD BoD BoD",
-            .scan_method = WIFI_FAST_SCAN,
-        }
-    };
-    esp_wifi_set_config(WIFI_IF_STA, &cfg_sta);
-    esp_wifi_start();
-    esp_wifi_connect();
+    ESP_ERROR_CHECK(esp_event_loop_create_default());
 
-    vTaskDelay(4000 / portTICK_PERIOD_MS);
+    initialise_wifi();
 
-    ESP_LOGI("Sending: ", "Paket from Task");
+    xTaskCreate(rec_file, "rec", 4096, NULL, 5, NULL);
     xTaskCreate(task_send_file, "tcp_client", 4096, NULL, 5, NULL);
 }
