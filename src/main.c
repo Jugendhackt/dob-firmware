@@ -26,6 +26,7 @@ static void task_send_file(void *pvParameters){
     };
 
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
+    connect(sock, (struct sockaddr *)&destaddr, sizeof(destaddr));
     int imax = sizeof(kartoffel) / 128;
     for(int i = 0; i < imax; i++){
         send(sock, kartoffel + 128 * i, 128, 0);
@@ -49,8 +50,8 @@ void app_main(){
     esp_wifi_set_mode(WIFI_MODE_STA);
     wifi_config_t cfg_sta = {
         .sta = {
-            .ssid = "ESP32_TESTAP",
-            .password = "testtesttesttest",
+            .ssid = "DoB DoB DoB DoB",
+            .password = "BoD BoD BoD BoD",
             .scan_method = WIFI_FAST_SCAN,
         }
     };
