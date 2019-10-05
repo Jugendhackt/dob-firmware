@@ -35,10 +35,7 @@ static void task_send_file(void *pvParameters){
     shutdown(sock, 0);
     close(sock);
 
-    while (1)
-    {
-        vTaskDelay(1000);
-    }
+    vTaskDelete(NULL);
 }
 
 void app_main(){
