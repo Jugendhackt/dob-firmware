@@ -89,6 +89,7 @@ void rec_file(void *pvParameters){
                     send(sock, &y, 1, 0);
                     size_t filesize;
                     recv(sock, &filesize, sizeof(filesize), 0);
+                    ESP_LOGI(RECTAG, "filesize: %d", filesize);
                     int imax = filesize / BUFFERSIZE;
                     for(int i = 0; i < imax; i++){
                         uint8_t recv_buffer[BUFFERSIZE];
@@ -103,6 +104,8 @@ void rec_file(void *pvParameters){
                     fclose(f);
                 }else
                 {
+                    uint8_t y = 0;
+                    send(sock, &y, 1, 0);
                     fclose(f);
                 }
                 
