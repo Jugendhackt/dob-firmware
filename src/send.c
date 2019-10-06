@@ -8,7 +8,7 @@ void send_file(void *pvParameters){
             .s_addr = inet_addr("192.168.4.1")
         },
         .sin_family = AF_INET,
-        .sin_port = htons(1234)
+        .sin_port = htons(PORT)
     };
 
     int sock = socket(AF_INET, SOCK_STREAM, IPPROTO_IP);
