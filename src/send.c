@@ -1,5 +1,7 @@
 #include "send.h"
 
+#define SENDTAG "send: "
+
 const char kartoffel[] = "Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Lorem ipsum dolor sit amet, consetetur sadipscing elitr, sed diam nonumy eirmod tempor invidunt ut labore et dolore magna aliquyam erat, sed diam voluptua. At vero eos et accusam et justo duo dolores et ea rebum. Stet clita kasd gubergren, no sea takimata sanctus est Lorem ipsum dolor sit amet. Duis autem vel eum iriure dolor in hendrerit in vulputate velit esse molestie consequat, vel illum dolore eu feugiat nulla facilisis at vero eros et accumsan et iusto odio dignissim qui blandit praesent luptatum zzril delenit augue duis dolore te feugait nulla facilisi. Lorem ipsum dolor sit amet, consectetuer adipiscing elit, sed diam nonummy nibh euismod tincidunt ut laoreet dolore magna aliquam erat volutpat. Ut wisi enim ad minim veniam, quis nostrud exerci tation ullamcorper suscipit lobortis nisl ut aliquip ex ea commodo consequat. Duis autem vel eum iriure dolor in hendrerit in vulputate velit ";
 
 void send_file(void *pvParameters){
@@ -34,6 +36,7 @@ void send_file(void *pvParameters){
     FILE* index = fopen("/sdcard/index.dob", "r");
     int lastChar = 0;
     while(lastChar != EOF){
+        ESP_LOGI(SENDTAG, "While run, last char: %d", lastChar);
         char line[BUFFERSIZE];
         int lenght = 0;
         int run = 0;
@@ -56,28 +59,31 @@ void send_file(void *pvParameters){
             }
         }
         line[lenght] = '\0';
+        ESP_LOGI(SENDTAG, "Line: %s", line);
         if (run == 2){
             send(sock, line, sizeof(line), 0);
             uint8_t accepted;
             recv(sock, &accepted, 1, 0);
             if (accepted)
             {
-                FILE* f = fopen(line, "r");
+                FILE* f = fopen(line, "rb");
                 if(!f){
                     ESP_LOGE(" ", "X_X");
                 }
                 fseek(f, 0, SEEK_END);
                 size_t filesize = ftell(f);
+                ESP_LOGI(SENDTAG, "Size: %d", filesize);
                 send(sock, &filesize, sizeof(filesize), 0);
                 int imax = filesize / BUFFERSIZE;
                 fseek(f, 0, SEEK_SET);
                 for(int i = 0; i < imax; i++){
                     char read_buffer[BUFFERSIZE];
-                    fgets(read_buffer, BUFFERSIZE, f);
+                    fread(read_buffer, sizeof(read_buffer[0]), BUFFERSIZE, f);
                     send(sock, read_buffer, BUFFERSIZE, 0);
                 }
-                char read_buffer[BUFFERSIZE];
-                fgets(read_buffer, filesize % BUFFERSIZE, f);
+                char read_buffer[filesize % BUFFERSIZE];
+                fread(read_buffer, sizeof(read_buffer[0]), filesize % BUFFERSIZE, f);
+                ESP_LOGI(SENDTAG, "Buffer: %s", read_buffer);
                 send(sock, read_buffer, filesize % BUFFERSIZE, 0);
                 fclose(f);
             }
