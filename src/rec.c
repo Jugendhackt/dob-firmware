@@ -44,8 +44,23 @@ int await_connection(){
 }
 
 void rec_file(void *pvParameters){
-    char rx_buffer[128];
-    char addr_str[128];
+    char rx_buffer[BUFFERSIZE];
+
+    sdmmc_host_t host = SDSPI_HOST_DEFAULT();
+    sdspi_slot_config_t slot_config = SDSPI_SLOT_CONFIG_DEFAULT();
+    slot_config.gpio_miso = PIN_NUM_MISO;
+    slot_config.gpio_mosi = PIN_NUM_MOSI;
+    slot_config.gpio_sck  = PIN_NUM_CLK;
+    slot_config.gpio_cs   = PIN_NUM_CS;
+
+    esp_vfs_fat_sdmmc_mount_config_t mount_config = {
+        .format_if_mount_failed = false,
+        .max_files = 4,
+        .allocation_unit_size = 0
+    };
+
+    sdmmc_card_t* card;
+    esp_err_t ret = esp_vfs_fat_sdmmc_mount("/sdcard", &host, &slot_config, &mount_config, &card);
 
     while (1) {
         int sock = await_connection();
@@ -66,6 +81,32 @@ void rec_file(void *pvParameters){
             else {
                 ESP_LOGI(RECTAG, "Received %d bytes:", len);
                 ESP_LOGI(RECTAG, "%s", rx_buffer);
+                FILE* f = fopen(rx_buffer, "r");
+                if (f == NULL)
+                {
+                    f = fopen(rx_buffer, "w");
+                    uint8_t y = 1;
+                    send(sock, &y, 1, 0);
+                    size_t filesize;
+                    recv(sock, &filesize, sizeof(filesize), 0);
+                    int imax = filesize / BUFFERSIZE;
+                    for(int i = 0; i < imax; i++){
+                        uint8_t recv_buffer[BUFFERSIZE];
+                        recv(sock, recv_buffer, BUFFERSIZE, 0);
+                        ESP_LOGI(RECTAG, "%s", recv_buffer);
+                        fwrite(recv_buffer, sizeof(recv_buffer[0]), BUFFERSIZE, f);
+                    }
+                    uint8_t recv_buffer[filesize % BUFFERSIZE];
+                    recv(sock, recv_buffer, filesize % BUFFERSIZE, 0);
+                    ESP_LOGI(RECTAG, "%s", recv_buffer);
+                    fwrite(recv_buffer, sizeof(recv_buffer[0]), filesize % BUFFERSIZE, f);
+                    fclose(f);
+                }else
+                {
+                    fclose(f);
+                }
+                
+                
             }
         }
 

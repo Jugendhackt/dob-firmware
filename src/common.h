@@ -21,6 +21,10 @@
 #include "lwip/sys.h"
 #include <lwip/netdb.h>
 #include "scan.h"
+#include "sdmmc_cmd.h"
+#include "driver/sdspi_host.h"
+#include "stdio.h"
+#include "esp_vfs_fat.h"
 
 #define SSID "DoB DoB DoB DoB"
 #define PASSWD "BoD BoD BoD BoD"
@@ -29,6 +33,10 @@
 #define PORT 1234
 #define BUFFERSIZE 128
 
+#define PIN_NUM_MISO 2
+#define PIN_NUM_MOSI 15
+#define PIN_NUM_CLK  14
+#define PIN_NUM_CS   13
 
 
 
